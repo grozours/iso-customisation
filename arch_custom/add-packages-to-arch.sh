@@ -1,5 +1,4 @@
 #!/bin/bash
-pacman -Sy
 pacman -S --noconfirm dialog \
 gpart \
 iftop \
@@ -13,6 +12,4 @@ unzip
 LANG=C pacman -Sl | awk '/\[installed\]$/ {print $1 "/" $2 "-" $3}' > /pkglist.txt
 
 # clean cache
-pacman -Scc
-
-
+pacman -Scc --noconfirm

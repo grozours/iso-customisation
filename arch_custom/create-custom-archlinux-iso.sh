@@ -11,11 +11,11 @@ done
 [[ -d $HOME/arch_custom/customiso ]] && sudo rm -rf $HOME/arch_custom/customiso
 [[ ! -d /tmp/archiso ]] && mkdir /tmp/archiso
 [[ ! -d $HOME/arch_custom/customiso ]] && mkdir -p $HOME/arch_custom/customiso
-[[ ! -d $HOME/arch_custom/iso ]] && mkdir $HOME/arch_custom/iso
-[[ ! -e $HOME/arch_custom/iso/$iso ]] && wget $origin/$iso -o $HOME/arch_custom/iso/$iso
+[[ ! -d $HOME/iso ]] && mkdir $HOME/arch_custom/iso
+[[ ! -e $HOME/iso/$iso ]] && wget $origin/$iso -o $HOME/iso/$iso
 
 # grab iso content to local directory
-sudo mount -t iso9660 -o loop $HOME/arch_custom/iso/$iso /tmp/archiso
+sudo mount -t iso9660 -o loop $HOME/iso/$iso /tmp/archiso
 sudo cp -a /tmp/archiso/. $HOME/arch_custom/customiso
 sudo umount /tmp/archiso
 
@@ -42,12 +42,28 @@ sudo rm squashfs-root/boot/initramfs-linux-fallback.img
 # mv package list from squashfs to new iso directory
 sudo mv squashfs-root/pkglist.txt $HOME/arch_custom/customiso/arch/pkglist.x86_64.txt
 
+# umount dev proc chroot before make new squashfs
+cd $HOME/arch_custom/customiso/arch/x86_64
+sudo umount -l squashfs-root/proc
+sudo umount -l squashfs-root/dev
+
 # recreate squashfs file
 sudo rm airootfs.sfs
-sudo mksquashfs -comp xz squashfs-root airootfs.sfs
+sudo mksquashfs squashfs-root airootfs.sfs
 
 # create new iso file
-sudo genisoimage -l -r -J -V "ARCH_CUSTOM" -b isolinux/isolinux.bin -no-emul-boot -boot-load-size 4 -boot-info-table -c isolinux/boot.cat -o ../arch-custom.iso ./
+cd $HOME/arch_custom/customiso
+sudo rm -rf arch/x86_64/squashfs-root
+sudo rm -f arch-custom.iso
 
-# hybrid iso for usb boot
-sudo isohybrid -u ../arch-custom.iso
+# create iso file
+sudo xorriso -as mkisofs \
+       -iso-level 3 \
+       -full-iso9660-filenames \
+       -volid "${iso_label}" \
+       -eltorito-boot isolinux/isolinux.bin \
+       -eltorito-catalog isolinux/boot.cat \
+       -no-emul-boot -boot-load-size 4 -boot-info-table \
+       -isohybrid-mbr ~/arch_custom/customiso/isolinux/isohdpfx.bin \
+       -output arch-custom.iso \
+       ~/arch_custom/customiso
