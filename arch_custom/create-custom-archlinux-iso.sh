@@ -33,3 +33,21 @@ sudo mount --bind /dev squashfs-root/dev
 # chroot into extracted squashfs
 sudo chroot squashfs-root /root/update-chroot-arch.sh
 sudo chroot squashfs-root /root/add-packages-to-arch.sh
+
+# mv new kernel from squashfs to new iso directory
+sudo mv squashfs-root/boot/vmlinuz-linux $HOME/arch_custom/customiso/arch/boot/x86_64/vmlinuz
+sudo mv squashfs-root/boot/initramfs-linux.img $HOME/arch_custom/customiso/arch/boot/x86_64/archiso.img
+sudo rm squashfs-root/boot/initramfs-linux-fallback.img
+
+# mv package list from squashfs to new iso directory
+sudo mv squashfs-root/pkglist.txt $HOME/arch_custom/customiso/arch/pkglist.x86_64.txt
+
+# recreate squashfs file
+sudo rm airootfs.sfs
+sudo mksquashfs -comp xz squashfs-root airootfs.sfs
+
+# create new iso file
+sudo genisoimage -l -r -J -V "ARCH_CUSTOM" -b isolinux/isolinux.bin -no-emul-boot -boot-load-size 4 -boot-info-table -c isolinux/boot.cat -o ../arch-custom.iso ./
+
+# hybrid iso for usb boot
+sudo isohybrid -u ../arch-custom.iso
