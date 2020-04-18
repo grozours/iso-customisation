@@ -8,14 +8,13 @@ do
    sudo umount -l "$montage"
 done
 
-project="$HOME/iso-customisation/arch_custom"
-
+project="$HOME/arch_custom"
 
 [[ -d $project/customiso ]] && sudo rm -rf $project/customiso
 [[ ! -d /tmp/archiso ]] && mkdir /tmp/archiso
 [[ ! -d $project/customiso ]] && mkdir -p $project/customiso
 [[ ! -d $project/src ]] && mkdir $project/src
-[[ ! -f $project/src/$iso ]] && wget $origin/$iso -o $project/src/$iso
+[[ ! -e $project/src/$iso ]] && wget $origin/$iso -o $project/src/$iso
 
 # grab iso content to local directory
 sudo mount -t iso9660 -o loop $project/src/$iso /tmp/archiso
@@ -27,32 +26,17 @@ cd $project/customiso/arch/x86_64
 sudo unsquashfs airootfs.sfs
 sudo cp ../boot/x86_64/vmlinuz squashfs-root/boot/vmlinuz-linux
 sudo cp /etc/resolv.conf squashfs-root/etc/
-sudo cp $project/update-pacman-database.sh squashfs-root/root/
-sudo cp $project/upgrade-kernel.sh squashfs-root/root/
+sudo cp $project/update-chroot-arch.sh squashfs-root/root/
 sudo cp $project/add-packages-to-arch.sh squashfs-root/root/
-sudo cp $project/add-aurutils-package-for-aur.sh squashfs-root/etc/skel/
-sudo cp $project/install-teamviewer.sh squashfs-root/etc/skel/
-sudo cp $project/useradd.sh squashfs-root/root/
-
-# add support service
-cp $project/systemd/secure-tunnel@.service squashfs-root/etc/systemd/system/
-# add config for support service
-cp $project/systemd/service-tunnel@grozours.fr squashfs-root/etc/default/
 
 sudo mount --bind /proc squashfs-root/proc
 sudo mount --bind /dev squashfs-root/dev
 
 # chroot into extracted squashfs
-sudo chroot squashfs-root /root/update-pacman-database.sh
+sudo chroot squashfs-root /root/update-chroot-arch.sh
 sudo chroot squashfs-root /root/add-packages-to-arch.sh
-sudo chroot squashfs-root /root/useradd.sh
 
-# install aur utils pour aur package and teamviewer install
-sudo chroot squashfs-root su - archlinux /home/archlinux/add-aurutils-package-for-aur.sh
-sudo chroot squashfs-root su - archlinux /home/archlinux/install-teamviewer.sh
-
-# create update kernel and move new kernel from squashfs to new iso directory
-sudo chroot squashfs-root /root/upgrade-kernel.sh
+# mv new kernel from squashfs to new iso directory
 sudo mv squashfs-root/boot/vmlinuz-linux $project/customiso/arch/boot/x86_64/vmlinuz
 sudo mv squashfs-root/boot/initramfs-linux.img $project/customiso/arch/boot/x86_64/archiso.img
 sudo rm squashfs-root/boot/initramfs-linux-fallback.img
