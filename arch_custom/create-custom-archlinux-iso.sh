@@ -3,6 +3,8 @@
 iso="archlinux-2020.04.01-x86_64.iso"
 origin="http://archlinux.de-labrusse.fr/iso/2020.04.01/"
 
+project="$HOME/iso-customisation/arch_custom"
+
 function create_CustomISO() 
 {
    # create iso file
@@ -15,8 +17,8 @@ function create_CustomISO()
        -eltorito-boot isolinux/isolinux.bin \
        -eltorito-catalog isolinux/boot.cat \
        -no-emul-boot -boot-load-size 4 -boot-info-table \
-       -isohybrid-mbr ~/arch_custom/customiso/isolinux/isohdpfx.bin \
-       -output arch-custom.iso \
+       -isohybrid-mbr $project/customiso/isolinux/isohdpfx.bin \
+       -output $project/output/arch-custom.iso \
        $project/customiso
 }
 
@@ -25,12 +27,12 @@ do
    sudo umount -l "$montage"
 done
 
-project="$HOME/iso-customisation/arch_custom"
 
 
 [[ -d $project/customiso ]] && sudo rm -rf $project/customiso
 [[ ! -d /tmp/archiso ]] && mkdir /tmp/archiso
 [[ ! -d $project/customiso ]] && mkdir -p $project/customiso
+[[ ! -d $project/output ]] && mkdir -p $project/output
 [[ ! -d $project/src ]] && mkdir $project/src
 [[ ! -f $project/src/$iso ]] && wget $origin/$iso -o $project/src/$iso
 
