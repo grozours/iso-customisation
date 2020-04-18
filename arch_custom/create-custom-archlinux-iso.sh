@@ -3,6 +3,23 @@
 iso="archlinux-2020.04.01-x86_64.iso"
 origin="http://archlinux.de-labrusse.fr/iso/2020.04.01/"
 
+function create_CustomISO() 
+{
+   # create iso file
+   iso_label="mycustom_iso"
+
+   sudo xorriso -as mkisofs \
+       -iso-level 3 \
+       -full-iso9660-filenames \
+       -volid "${iso_label}" \
+       -eltorito-boot isolinux/isolinux.bin \
+       -eltorito-catalog isolinux/boot.cat \
+       -no-emul-boot -boot-load-size 4 -boot-info-table \
+       -isohybrid-mbr ~/arch_custom/customiso/isolinux/isohdpfx.bin \
+       -output arch-custom.iso \
+       $project/customiso
+}
+
 for montage in $(sudo mount | grep arch_custom | awk '{print $3}')
 do
    sudo umount -l "$montage"
@@ -74,14 +91,4 @@ cd $project/customiso
 sudo rm -rf arch/x86_64/squashfs-root
 sudo rm -f arch-custom.iso
 
-# create iso file
-sudo xorriso -as mkisofs \
-       -iso-level 3 \
-       -full-iso9660-filenames \
-       -volid "${iso_label}" \
-       -eltorito-boot isolinux/isolinux.bin \
-       -eltorito-catalog isolinux/boot.cat \
-       -no-emul-boot -boot-load-size 4 -boot-info-table \
-       -isohybrid-mbr ~/arch_custom/customiso/isolinux/isohdpfx.bin \
-       -output arch-custom.iso \
-       $project/customiso
+create_CustomISO
